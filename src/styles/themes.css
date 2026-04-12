@@ -1,0 +1,142 @@
+/* ============================================================
+   themes.css — GreenRoute Theme Variables
+   Developed by Harshit Chhabi — Reg: 24BCI0098
+   ============================================================ */
+
+:root,
+[data-theme="light"] {
+  /* Backgrounds */
+  --gr-bg-primary: #f0fdf9;
+  --gr-bg-secondary: #ecfdf5;
+  --gr-bg-tertiary: #ffffff;
+  --gr-bg-card: rgba(255, 255, 255, 0.75);
+  --gr-bg-card-solid: #ffffff;
+  --gr-bg-elevated: #f8fffe;
+  --gr-bg-input: #ffffff;
+  --gr-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Brand Colors */
+  --gr-emerald-50: #ecfdf5;
+  --gr-emerald-100: #d1fae5;
+  --gr-emerald-200: #a7f3d0;
+  --gr-emerald-300: #6ee7b7;
+  --gr-emerald-400: #34d399;
+  --gr-emerald-500: #10b981;
+  --gr-emerald-600: #059669;
+  --gr-emerald-700: #047857;
+  --gr-emerald-800: #065f46;
+  --gr-emerald-900: #064e3b;
+
+  /* Accent */
+  --gr-accent: #059669;
+  --gr-accent-light: #34d399;
+  --gr-accent-dark: #047857;
+  --gr-accent-glow: rgba(16, 185, 129, 0.3);
+
+  /* Secondary accent */
+  --gr-teal: #14b8a6;
+  --gr-lime: #84cc16;
+  --gr-sky: #0ea5e9;
+
+  /* Text */
+  --gr-text-primary: #0f172a;
+  --gr-text-secondary: #475569;
+  --gr-text-tertiary: #94a3b8;
+  --gr-text-inverse: #ffffff;
+  --gr-text-accent: #059669;
+  --gr-text-link: #047857;
+
+  /* Borders */
+  --gr-border: #e2e8f0;
+  --gr-border-light: #f1f5f9;
+  --gr-border-accent: rgba(16, 185, 129, 0.3);
+
+  /* Shadows */
+  --gr-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --gr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --gr-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --gr-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
+  --gr-shadow-glow: 0 0 24px rgba(16, 185, 129, 0.2);
+
+  /* Glass */
+  --gr-glass-bg: rgba(255, 255, 255, 0.7);
+  --gr-glass-border: rgba(255, 255, 255, 0.3);
+  --gr-glass-blur: 16px;
+
+  /* Gradients */
+  --gr-gradient-hero: linear-gradient(135deg, #059669 0%, #0ea5e9 50%, #8b5cf6 100%);
+  --gr-gradient-card: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(236,253,245,0.6));
+  --gr-gradient-accent: linear-gradient(135deg, #10b981, #14b8a6);
+  --gr-gradient-dark: linear-gradient(135deg, #064e3b, #0f172a);
+
+  /* Status */
+  --gr-success: #10b981;
+  --gr-warning: #f59e0b;
+  --gr-error: #ef4444;
+  --gr-info: #3b82f6;
+
+  /* Misc */
+  --gr-radius-sm: 8px;
+  --gr-radius-md: 12px;
+  --gr-radius-lg: 16px;
+  --gr-radius-xl: 24px;
+  --gr-radius-full: 9999px;
+  --gr-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --gr-transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Navbar */
+  --gr-navbar-bg: rgba(255, 255, 255, 0.85);
+  --gr-navbar-blur: 20px;
+}
+
+[data-theme="dark"] {
+  /* Backgrounds */
+  --gr-bg-primary: #0a0f1a;
+  --gr-bg-secondary: #111827;
+  --gr-bg-tertiary: #1e293b;
+  --gr-bg-card: rgba(30, 41, 59, 0.75);
+  --gr-bg-card-solid: #1e293b;
+  --gr-bg-elevated: #1a2332;
+  --gr-bg-input: #1e293b;
+  --gr-bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Brand stays same but brighter */
+  --gr-accent: #34d399;
+  --gr-accent-light: #6ee7b7;
+  --gr-accent-dark: #10b981;
+  --gr-accent-glow: rgba(52, 211, 153, 0.35);
+
+  /* Text */
+  --gr-text-primary: #f1f5f9;
+  --gr-text-secondary: #94a3b8;
+  --gr-text-tertiary: #64748b;
+  --gr-text-inverse: #0f172a;
+  --gr-text-accent: #34d399;
+  --gr-text-link: #6ee7b7;
+
+  /* Borders */
+  --gr-border: #334155;
+  --gr-border-light: #1e293b;
+  --gr-border-accent: rgba(52, 211, 153, 0.3);
+
+  /* Shadows */
+  --gr-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --gr-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --gr-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --gr-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+  --gr-shadow-glow: 0 0 30px rgba(52, 211, 153, 0.25);
+
+  /* Glass */
+  --gr-glass-bg: rgba(15, 23, 42, 0.75);
+  --gr-glass-border: rgba(51, 65, 85, 0.4);
+  --gr-glass-blur: 20px;
+
+  /* Gradients */
+  --gr-gradient-hero: linear-gradient(135deg, #064e3b 0%, #0c4a6e 50%, #4c1d95 100%);
+  --gr-gradient-card: linear-gradient(145deg, rgba(30,41,59,0.95), rgba(17,24,39,0.8));
+  --gr-gradient-accent: linear-gradient(135deg, #34d399, #2dd4bf);
+
+  /* Navbar */
+  --gr-navbar-bg: rgba(10, 15, 26, 0.88);
+  --gr-navbar-blur: 24px;
+}

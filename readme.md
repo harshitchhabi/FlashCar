@@ -1,83 +1,110 @@
+# 🌿 GreenRoute — Sustainable Transportation Platform
 
-# Green Route
+**Project:** 24BCI0098_L1+L2+L29+L30_MP_Harshit_Chhabi  
+**Developer:** Harshit Chhabi  
+**Registration Number:** 24BCI0098  
+**Version:** 2.0.0
 
-GreenRoute is designed to promote sustainable transportation by connecting individuals traveling in the same direction, allowing them to share rides. This approach not only reduces commuting costs but also minimizes environmental impact and fosters community connections.
+---
 
+## 📋 About
 
+GreenRoute is a sustainable transportation platform built for Indian cities. It provides smart carpooling, parking finder, and environmental impact tracking to help commuters share rides, reduce emissions, and save money.
 
-## Features
+## 🚀 Tech Stack
 
-### Carpooling
-- Connect with colleagues and neighbors for shared rides
-- Find or offer rides based on your commute route
-- Reduce carbon emissions by sharing vehicles
-- Track your environmental impact over time
+| Technology | Purpose |
+|---|---|
+| **React.js 18** | Frontend framework (functional components + hooks) |
+| **Vite** | Build tool & dev server |
+| **React Router DOM** | Client-side routing |
+| **Firebase** | Authentication (Google + Email/Password) |
+| **Google Maps API** | Interactive maps, directions, Indian city search |
+| **Framer Motion** | Scroll animations & transitions |
+| **Vanilla CSS** | Design system with custom properties, dark/light themes |
 
-### Environmental Impact
+## 🏗️ Project Structure
 
-GreenRoute helps reduce carbon emissions in two key ways:
-
-1. **Carpooling**: Each shared ride can reduce carbon emissions by up to 1kg CO2 per km compared to individual trips.
-2. **Smart Parking**: Reducing time spent searching for parking decreases fuel consumption and emissions.
-## Tech Stack
-
-- **Frontend**: React.js and Next.js
-- **UI**: Tailwind CSS
-- **Maps**: Leaflet API Model + Google Maps API
-- **Backend** Node.js , Express.js and Firebase
-- **Deployment** Vercel 
-## Getting Started
-
-### Prerequisites
-- Node.js 14.x or higher
-- npm or yarn
-
-### Installation
-
-1. Clone the repository
-```bash
-git clone https://github.com/AdityaTiwari64/GreenRoute.git
-
-cd GreenRoute
+```
+src/
+├── main.jsx                    # Entry point
+├── App.jsx                     # Router + providers
+├── components/
+│   ├── common/                 # Navbar, Footer, AnimatedSection, LoadingSkeleton, etc.
+│   ├── auth/                   # GoogleSignInButton, ProtectedRoute
+│   ├── maps/                   # IndiaMapView (Google Maps)
+│   └── notifications/          # NotificationCenter (Toast system)
+├── contexts/
+│   ├── AuthContext.jsx          # Firebase auth state
+│   ├── ThemeContext.jsx         # Dark/Light mode
+│   ├── NotificationContext.jsx  # Toast notifications
+│   └── FavoritesContext.jsx     # Saved routes
+├── pages/
+│   ├── HomePage.jsx             # Landing page
+│   ├── CarpoolPage.jsx          # Ride sharing with map
+│   ├── ParkingPage.jsx          # Smart parking finder
+│   ├── DashboardPage.jsx        # User dashboard
+│   ├── LoginPage.jsx            # Sign in
+│   ├── RegisterPage.jsx         # Sign up
+│   └── AboutPage.jsx            # About & credits
+├── hooks/                       # useScrollAnimation, useLocalStorage
+├── utils/
+│   ├── firebase.js              # Firebase config & auth helpers
+│   ├── constants_24BCI0098.js   # Identity & app constants
+│   ├── indianCities.js          # Indian city data & mock rides
+│   └── dateFormatter.js         # Date utilities
+└── styles/
+    ├── index.css                # Master stylesheet & design system
+    ├── themes.css               # Light/dark CSS variables
+    └── animations.css           # Keyframe animations
 ```
 
-2. Install dependencies
+## ⚡ Key Features
+
+- **🗺️ Google Maps Integration** — India-focused with city autocomplete & route visualization
+- **🔐 Firebase Authentication** — Google Sign-In + Email/Password
+- **🌙 Dark Mode** — Toggle with localStorage persistence
+- **📱 Fully Responsive** — Mobile-first design
+- **✨ Smooth Animations** — Framer Motion scroll animations
+- **⭐ Favorites System** — Save routes with localStorage
+- **🔔 Toast Notifications** — Animated notification system
+- **⚡ Lazy Loading** — Code-split pages for performance
+- **💎 Glassmorphism UI** — Premium modern design
+- **🇮🇳 India-Focused** — 25+ Indian cities with mock data
+
+## 🛠️ Getting Started
+
 ```bash
+# Install dependencies
 npm install
-# or
-yarn install
-```
 
-3. Run the development server
-```bash
+# Start development server
 npm run dev
-# or
-yarn dev
+
+# Build for production
+npm run build
 ```
 
-4. Open your browser and navigate to http://localhost:3000
-## Deployment
+The app runs at **http://localhost:3000**
 
-To deploy this project run
+## 🔑 API Keys
 
-```bash
-  npm run deploy
-```
-Direct Link:
-https://greenroute-self.vercel.app/carpool
-## Future Enhancements
+- **Google Maps:** Pre-configured (free limited access)
+- **Firebase:** Pre-configured for GreenRoute project
 
-- Mobile app with push notifications
-- Integration with public transportation
-- Gamification and rewards system for sustainable choices
-- Carbon offset purchase options
-- Corporate commuting management
+## 📄 Identity Requirement
 
-## Contributing
+This project creatively incorporates the following identity throughout the codebase:
 
-We welcome contributions to make GreenRoute even better! Please feel free to submit issues and pull requests.
+- **Registration Number:** `24BCI0098`
+- **Developer Name:** `Harshit Chhabi`
 
-## License
+Used in: variable names, function names, component names, console outputs, UI display text, and documentation. Examples:
+- `harshitChhabiGoogleSignIn()` — auth handler
+- `constants_24BCI0098.js` — identity constants file
+- `HarshitChhabiFooterBadge` — footer credit component
+- `console.log("Developed by Harshit Chhabi - 24BCI0098")`
 
-[MIT](https://choosealicense.com/licenses/mit/)
+---
 
+> Developed with 💚 by **Harshit Chhabi** (24BCI0098)

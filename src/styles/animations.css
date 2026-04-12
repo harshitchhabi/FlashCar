@@ -1,0 +1,127 @@
+/* ============================================================
+   animations.css — GreenRoute Keyframe Animations
+   Developed by Harshit Chhabi — Reg: 24BCI0098
+   ============================================================ */
+
+/* Fade In */
+@keyframes grFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Slide Up */
+@keyframes grSlideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide Down */
+@keyframes grSlideDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Slide Left */
+@keyframes grSlideLeft {
+  from { opacity: 0; transform: translateX(60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Slide Right */
+@keyframes grSlideRight {
+  from { opacity: 0; transform: translateX(-60px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Scale In */
+@keyframes grScaleIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Pulse Glow — used on hero accent elements */
+@keyframes grPulseGlow {
+  0%, 100% { box-shadow: 0 0 20px var(--gr-accent-glow); }
+  50% { box-shadow: 0 0 40px var(--gr-accent-glow), 0 0 60px var(--gr-accent-glow); }
+}
+
+/* Float — for hero blobs */
+@keyframes grFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-20px) rotate(3deg); }
+  50% { transform: translateY(-10px) rotate(-2deg); }
+  75% { transform: translateY(-25px) rotate(1deg); }
+}
+
+@keyframes grFloat2 {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  33% { transform: translateY(-15px) rotate(-4deg) scale(1.02); }
+  66% { transform: translateY(-30px) rotate(2deg) scale(0.98); }
+}
+
+/* Spin — for loaders */
+@keyframes grSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Shimmer — for skeleton loaders */
+@keyframes grShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Toast slide in */
+@keyframes grToastIn {
+  from { opacity: 0; transform: translateX(100%) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* Gradient shift for hero */
+@keyframes grGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Blob morph */
+@keyframes grBlobMorph {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+  50% { border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%; }
+  75% { border-radius: 60% 40% 60% 30% / 60% 40% 30% 70%; }
+}
+
+/* Counter animation */
+@keyframes grCountUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark mode toggle icon spin */
+@keyframes grThemeSwitch {
+  from { transform: rotate(0deg) scale(0.8); opacity: 0; }
+  to { transform: rotate(360deg) scale(1); opacity: 1; }
+}
+
+/* Utility classes */
+.gr-animate-fade { animation: grFadeIn 0.6s ease-out forwards; }
+.gr-animate-slide-up { animation: grSlideUp 0.7s ease-out forwards; }
+.gr-animate-slide-down { animation: grSlideDown 0.5s ease-out forwards; }
+.gr-animate-slide-left { animation: grSlideLeft 0.7s ease-out forwards; }
+.gr-animate-slide-right { animation: grSlideRight 0.7s ease-out forwards; }
+.gr-animate-scale { animation: grScaleIn 0.5s ease-out forwards; }
+.gr-animate-pulse-glow { animation: grPulseGlow 3s ease-in-out infinite; }
+.gr-animate-float { animation: grFloat 8s ease-in-out infinite; }
+.gr-animate-float2 { animation: grFloat2 10s ease-in-out infinite; }
+.gr-animate-spin { animation: grSpin 1s linear infinite; }
+.gr-animate-shimmer {
+  background: linear-gradient(90deg, var(--gr-bg-tertiary) 25%, var(--gr-border) 50%, var(--gr-bg-tertiary) 75%);
+  background-size: 200% 100%;
+  animation: grShimmer 1.5s infinite;
+}
+.gr-animate-gradient { 
+  background-size: 200% 200%;
+  animation: grGradientShift 6s ease infinite; 
+}
+.gr-animate-blob { animation: grBlobMorph 8s ease-in-out infinite; }
