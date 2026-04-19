@@ -1,5 +1,5 @@
 /**
- * CarpoolPage.jsx — Carpooling Page with Map & Ride Offering
+ * CarpoolPage.jsx — Carpooling Page with Map & Route Comparison
  * GreenRoute — Developed by Harshit Chhabi (24BCI0098)
  */
 import { useState, lazy, Suspense, useEffect, useMemo } from 'react';
@@ -13,9 +13,131 @@ import { MOCK_CARPOOLS_INDIA_24BCI0098, INDIAN_CITIES_24BCI0098 } from '../utils
 import { formatDate_24BCI0098 } from '../utils/dateFormatter';
 import { calculateDistance, runHC_EcoRouting, calculateCarpoolSavings } from '../utils/ecoRouting_24BCI0098';
 
-// Lazy load the map — Harshit Chhabi (24BCI0098) performance optimization
 const IndiaMapView = lazy(() => import('../components/maps/IndiaMapView'));
 
+// ── Fuel cost rates (INR per km) ─────────────────────────────────────────
+const FUEL_COST_PER_KM = { Petrol: 7.5, Diesel: 5.5, EV: 1.8 };
+
+// ── Trees needed to offset 1 kg of CO₂ (a tree absorbs ~21 kg/year) ──────
+const treesNeeded = (co2Kg) => (co2Kg / 21).toFixed(2);
+
+// ── Rich route comparison panel ───────────────────────────────────────────
+function RouteComparisonPanel({ ecoData, routeMeta, fuelType, seats }) {
+  if (!ecoData) return null;
+
+  const stdDist   = routeMeta ? parseFloat(routeMeta.standard.distKm) : parseFloat(ecoData.standardDistanceKm);
+  const ecoDist   = routeMeta ? parseFloat(routeMeta.eco.distKm)      : parseFloat(ecoData.ecoDistanceKm);
+  const stdDur    = routeMeta ? routeMeta.standard.durMins : Math.round(stdDist / 50 * 60);
+  const ecoDur    = routeMeta ? routeMeta.eco.durMins      : Math.round(ecoDist / 50 * 60);
+  const costPerKm = FUEL_COST_PER_KM[fuelType] ?? 7.5;
+
+  const stdFuelCost = (stdDist * costPerKm).toFixed(0);
+  const ecoFuelCost = (ecoDist * costPerKm).toFixed(0);
+  const fuelSaved   = (stdFuelCost - ecoFuelCost).toFixed(0);
+  const distSaved   = (stdDist - ecoDist).toFixed(1);
+  const timeSaved   = stdDur - ecoDur;
+
+  const stdCO2raw   = parseFloat(ecoData.nonEcoNoWeather);
+  const ecoCO2raw   = parseFloat(ecoData.ecoNoWeather);
+  const stdCO2wthr  = parseFloat(ecoData.standardCO2);
+  const ecoCO2wthr  = parseFloat(ecoData.ecoCO2);
+  const co2Saved    = parseFloat(ecoData.savedCO2);
+  const perPersonCO2 = parseFloat(ecoData.carpoolSavings?.perPerson ?? ecoCO2wthr);
+
+  const colCard = (bg, border) => ({
+    flex: 1, background: bg, border: `1.5px solid ${border}`,
+    borderRadius: '12px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.45rem'
+  });
+  const row = (label, val, color, bold) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
+      <span style={{ opacity: 0.75 }}>{label}</span>
+      <span style={{ fontWeight: bold ? 700 : 500, color: color ?? 'var(--gr-text-primary)' }}>{val}</span>
+    </div>
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+      style={{ background: 'var(--gr-bg-primary)', borderRadius: '14px', padding: '1.1rem', border: '1px solid var(--gr-border)', marginBottom: '1rem' }}
+    >
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+        <span style={{ fontWeight: 700, color: 'var(--gr-accent)', fontSize: '0.95rem' }}>🌿 HC-ERA Route Comparison</span>
+        <span style={{ fontSize: '0.75rem', background: 'rgba(167,139,250,0.15)', color: '#a78bfa', padding: '0.2rem 0.55rem', borderRadius: '999px', fontWeight: 600 }}>
+          🌤️ {ecoData.weather}
+        </span>
+      </div>
+
+      {/* Side-by-side cards */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.85rem' }}>
+
+        {/* Standard */}
+        <div style={colCard('rgba(239,68,68,0.07)', 'rgba(239,68,68,0.35)')}>
+          <div style={{ fontWeight: 700, color: '#ef4444', fontSize: '0.85rem', marginBottom: '0.3rem' }}>🔴 Standard Route</div>
+          {row('Distance',      `${stdDist} km`,      '#ef4444', true)}
+          {row('Duration',      `${stdDur} min`,      '#ef4444')}
+          {row('Fuel Cost',     `₹${stdFuelCost}`,    '#ef4444')}
+          <div style={{ margin: '0.35rem 0', height: 1, background: 'rgba(239,68,68,0.2)' }} />
+          {row('CO₂ (raw)',     `${stdCO2raw} kg`,    '#fca5a5')}
+          {row('CO₂ (+weather)',`${stdCO2wthr} kg`,   '#ef4444', true)}
+          {row('Trees to offset',`${treesNeeded(stdCO2wthr)} 🌳`, '#d1d5db')}
+        </div>
+
+        {/* Eco */}
+        <div style={colCard('rgba(16,185,129,0.07)', 'rgba(16,185,129,0.35)')}>
+          <div style={{ fontWeight: 700, color: '#10b981', fontSize: '0.85rem', marginBottom: '0.3rem' }}>🟢 HC-ERA Eco Route</div>
+          {row('Distance',       `${ecoDist} km`,      '#10b981', true)}
+          {row('Duration',       `${ecoDur} min`,      '#10b981')}
+          {row('Fuel Cost',      `₹${ecoFuelCost}`,    '#10b981')}
+          <div style={{ margin: '0.35rem 0', height: 1, background: 'rgba(16,185,129,0.2)' }} />
+          {row('CO₂ (raw)',      `${ecoCO2raw} kg`,    '#6ee7b7')}
+          {row('CO₂ (+weather)', `${ecoCO2wthr} kg`,   '#10b981', true)}
+          {row('Trees to offset', `${treesNeeded(ecoCO2wthr)} 🌳`, '#d1d5db')}
+        </div>
+      </div>
+
+      {/* Savings summary row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '0.7rem' }}>
+        {[
+          { label: 'Distance Saved', val: `${distSaved} km`,    color: '#34d399', icon: '🛣️' },
+          { label: 'Time Saved',     val: `${timeSaved} min`,   color: '#60a5fa', icon: '⏱️' },
+          { label: 'Fuel Saved',     val: `₹${fuelSaved}`,      color: '#fbbf24', icon: '⛽' },
+          { label: 'CO₂ Saved',      val: `${co2Saved} kg`,     color: '#a78bfa', icon: '🌿' },
+        ].map((s, i) => (
+          <div key={i} style={{ background: 'var(--gr-bg-secondary)', borderRadius: '10px', padding: '0.6rem 0.5rem', textAlign: 'center' }}>
+            <div style={{ fontSize: '1.1rem' }}>{s.icon}</div>
+            <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '0.95rem', color: s.color, marginTop: '0.15rem' }}>{s.val}</div>
+            <div style={{ fontSize: '0.65rem', opacity: 0.65, marginTop: '0.1rem' }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Per-person carpool row */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+        <div style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', borderRadius: '10px', padding: '0.6rem 0.75rem' }}>
+          <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>Your footprint / person ({seats} in car)</div>
+          <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.1rem', color: '#60a5fa', marginTop: '0.15rem' }}>{perPersonCO2} kg CO₂</div>
+        </div>
+        {ecoData.chargingTimeMins > 0 && (
+          <div style={{ background: 'rgba(14,165,233,0.1)', border: '1px solid rgba(14,165,233,0.3)', borderRadius: '10px', padding: '0.6rem 0.75rem' }}>
+            <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>EV Charging Stops</div>
+            <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1.1rem', color: '#0ea5e9', marginTop: '0.15rem' }}>{ecoData.chargingTimeMins} mins ⚡</div>
+          </div>
+        )}
+        {ecoData.chargingTimeMins === 0 && (
+          <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: '10px', padding: '0.6rem 0.75rem' }}>
+            <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>HC-ERA Optimisation</div>
+            <div style={{ fontFamily: 'Outfit', fontWeight: 800, fontSize: '1rem', color: '#10b981', marginTop: '0.15rem' }}>−15% traffic · −5% elevation · −8% physics</div>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Main Page
+// ═══════════════════════════════════════════════════════════════════════════
 export default function CarpoolPage_HarshitChhabi() {
   const { isAuthenticated, getUserProfile } = useAuth();
   const { addNotification } = useNotifications();
@@ -27,11 +149,11 @@ export default function CarpoolPage_HarshitChhabi() {
   const [bookingRide, setBookingRide] = useState(null);
   const [origin, setOrigin] = useState(null);
   const [destination, setDestination] = useState(null);
-
-  // Manual input state tied to datalist
   const [originInput, setOriginInput] = useState('');
   const [destInput, setDestInput] = useState('');
   const [ecoData, setEcoData] = useState(null);
+  // Real distances/durations returned from the map component
+  const [routeMeta, setRouteMeta] = useState(null);
 
   const [formData_24BCI0098, setFormData] = useState({
     driverName: '',
@@ -43,53 +165,36 @@ export default function CarpoolPage_HarshitChhabi() {
   });
 
   const [bookingForm, setBookingForm] = useState({
-    passengerName: '',
-    passengerEmail: '',
-    passengerPhone: '',
-    notes: '',
+    passengerName: '', passengerEmail: '', passengerPhone: '', notes: '',
   });
 
-  // Keep manual inputs in sync with map selections
-  useEffect(() => {
-    if (origin) setOriginInput(origin.address);
-  }, [origin]);
+  useEffect(() => { if (origin) setOriginInput(origin.address); }, [origin]);
+  useEffect(() => { if (destination) setDestInput(destination.address); }, [destination]);
 
-  useEffect(() => {
-    if (destination) setDestInput(destination.address);
-  }, [destination]);
-
-  // Recalculate Harshit-Chhabi Eco-Routing whenever origin/dest/fuel changes
+  // HC-ERA recalculation
   useEffect(() => {
     if (origin && destination) {
       const dist = calculateDistance(origin.lat, origin.lng, destination.lat, destination.lng);
       const hc_era = runHC_EcoRouting(dist, formData_24BCI0098.fuelType);
       const carpoolSavings = calculateCarpoolSavings(Number(hc_era.ecoCO2), parseInt(formData_24BCI0098.seatsAvailable));
-      setEcoData({
-        distance: dist.toFixed(0),
-        ...hc_era,
-        carpoolSavings
-      });
+      setEcoData({ distance: dist.toFixed(0), ...hc_era, carpoolSavings });
     } else {
       setEcoData(null);
+      setRouteMeta(null);
     }
   }, [origin, destination, formData_24BCI0098.fuelType, formData_24BCI0098.seatsAvailable]);
 
-
-  // Re-calculate eco routing data if booking a ride
-  // Use useMemo to avoid recalculating on every re-render
   const bookingEcoData = useMemo(() => {
     if (!bookingRide) return null;
-    const dist = calculateDistance(bookingRide.startLocation.lat, bookingRide.startLocation.lng, bookingRide.destination.lat, bookingRide.destination.lng);
+    const dist = calculateDistance(
+      bookingRide.startLocation.lat, bookingRide.startLocation.lng,
+      bookingRide.destination.lat, bookingRide.destination.lng
+    );
     const fuel = bookingRide.vehicleType.includes('EV') ? 'EV' : (bookingRide.vehicleType.includes('Diesel') ? 'Diesel' : 'Petrol');
     const hc_era = runHC_EcoRouting(dist, fuel);
-    const carpoolSavings = calculateCarpoolSavings(Number(hc_era.ecoCO2), bookingRide.seatsTotal || 4); // assuming 4 max if not defined
-    return {
-      distance: dist.toFixed(0),
-      ...hc_era,
-      carpoolSavings
-    };
+    const carpoolSavings = calculateCarpoolSavings(Number(hc_era.ecoCO2), bookingRide.seatsTotal || 4);
+    return { distance: dist.toFixed(0), ...hc_era, carpoolSavings };
   }, [bookingRide]);
-
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
@@ -99,36 +204,23 @@ export default function CarpoolPage_HarshitChhabi() {
   const handleManualOrigin = (e) => {
     const val = e.target.value;
     setOriginInput(val);
-    const matchedCity = INDIAN_CITIES_24BCI0098.find(c => c.name.toLowerCase() === val.toLowerCase());
-    if (matchedCity) {
-      setOrigin({ lat: matchedCity.lat, lng: matchedCity.lng, address: matchedCity.name });
-    } else {
-      setOrigin(null);
-    }
+    const city = INDIAN_CITIES_24BCI0098.find(c => c.name.toLowerCase() === val.toLowerCase());
+    if (city) setOrigin({ lat: city.lat, lng: city.lng, address: city.name });
+    else setOrigin(null);
   };
 
   const handleManualDest = (e) => {
     const val = e.target.value;
     setDestInput(val);
-    const matchedCity = INDIAN_CITIES_24BCI0098.find(c => c.name.toLowerCase() === val.toLowerCase());
-    if (matchedCity) {
-      setDestination({ lat: matchedCity.lat, lng: matchedCity.lng, address: matchedCity.name });
-    } else {
-      setDestination(null);
-    }
+    const city = INDIAN_CITIES_24BCI0098.find(c => c.name.toLowerCase() === val.toLowerCase());
+    if (city) setDestination({ lat: city.lat, lng: city.lng, address: city.name });
+    else setDestination(null);
   };
 
   const harshitChhabiSubmitRide = (e) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      addNotification('Please sign in to offer a ride', 'warning');
-      navigate('/login?redirect=/carpool');
-      return;
-    }
-    if (!origin || !destination) {
-      addNotification('Please select both origin and destination', 'error');
-      return;
-    }
+    if (!isAuthenticated) { addNotification('Please sign in to offer a ride', 'warning'); navigate('/login?redirect=/carpool'); return; }
+    if (!origin || !destination) { addNotification('Please select both origin and destination', 'error'); return; }
 
     const newRide = {
       id: `ride-hc-${Date.now()}`,
@@ -148,22 +240,14 @@ export default function CarpoolPage_HarshitChhabi() {
     setOfferedRides([newRide, ...offeredRides]);
     setShowOfferForm(false);
     setFormData({ driverName: '', departureTime: '', seatsAvailable: 2, costPerPerson: '', vehicleType: '', fuelType: 'Petrol' });
-    setOriginInput('');
-    setDestInput('');
-    setOrigin(null);
-    setDestination(null);
+    setOriginInput(''); setDestInput(''); setOrigin(null); setDestination(null);
     addNotification('Ride offered successfully! 🎉', 'success');
   };
 
   const harshitChhabiBookRide = (e) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      addNotification('Please sign in to book a ride', 'warning');
-      navigate('/login?redirect=/carpool');
-      return;
-    }
+    if (!isAuthenticated) { addNotification('Please sign in to book a ride', 'warning'); navigate('/login?redirect=/carpool'); return; }
     addNotification(`Booking request sent to ${bookingRide.driver}! 🕒`, 'success');
-    // Simulate driver approval
     setTimeout(() => {
       addNotification(`${bookingRide.driver} approved your ride! 🎉`, 'success');
       setOfferedRides(offeredRides.map(r => r.id === bookingRide.id ? { ...r, seatsAvailable: Math.max(0, r.seatsAvailable - 1) } : r));
@@ -173,27 +257,19 @@ export default function CarpoolPage_HarshitChhabi() {
   };
 
   const toggleFavorite = (ride) => {
-    if (isFavorite(ride.id)) {
-      removeFavorite(ride.id);
-      addNotification('Removed from saved routes', 'info');
-    } else {
-      addFavorite(ride);
-      addNotification('Route saved! ⭐', 'success');
-    }
+    if (isFavorite(ride.id)) { removeFavorite(ride.id); addNotification('Removed from saved routes', 'info'); }
+    else { addFavorite(ride); addNotification('Route saved! ⭐', 'success'); }
   };
 
   return (
     <div className="gr-page" id="carpool-page-24BCI0098">
-      {/* HTML Datalist for autocomplete */}
       <datalist id="indian-cities-24BCI0098">
-        {INDIAN_CITIES_24BCI0098.map((city, idx) => (
-          <option key={idx} value={city.name} />
-        ))}
+        {INDIAN_CITIES_24BCI0098.map((city, idx) => <option key={idx} value={city.name} />)}
       </datalist>
 
       <section className="gr-section" style={{ background: 'var(--gr-bg-secondary)', paddingTop: '6rem' }}>
         <div className="gr-container">
-          {/* Header */}
+
           <AnimatedSection variant="fadeUp">
             <div className="gr-section-header">
               <span className="gr-label">Carpooling</span>
@@ -203,7 +279,8 @@ export default function CarpoolPage_HarshitChhabi() {
           </AnimatedSection>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            {/* Left — Map + Search */}
+
+            {/* ── Left: Map ── */}
             <AnimatedSection variant="fadeRight" style={{ gridColumn: 'span 1' }}>
               <div className="gr-card" style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -222,9 +299,10 @@ export default function CarpoolPage_HarshitChhabi() {
                     onDestinationSelect={setDestination}
                     origin={origin}
                     destination={destination}
-                    showDirections={true}
+                    showDirections={!!(origin && destination)}
                     height="400px"
                     zoom={5}
+                    onRouteData={setRouteMeta}
                     markers={offeredRides.map(r => ({
                       id: r.id,
                       lat: r.startLocation?.lat,
@@ -236,7 +314,7 @@ export default function CarpoolPage_HarshitChhabi() {
               </div>
             </AnimatedSection>
 
-            {/* Right — Offer Form or Ride List */}
+            {/* ── Right: Offer Form or Ride List ── */}
             <AnimatedSection variant="fadeLeft" style={{ gridColumn: 'span 1' }}>
               {showOfferForm ? (
                 <div className="gr-card">
@@ -249,44 +327,23 @@ export default function CarpoolPage_HarshitChhabi() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                       <div className="gr-input-group">
                         <label>Origin City</label>
-                        <input className="gr-input" list="indian-cities-24BCI0098" value={originInput} onChange={handleManualOrigin} placeholder="Type a city..." required />
+                        <input className="gr-input" list="indian-cities-24BCI0098" value={originInput} onChange={handleManualOrigin} placeholder="Type a city…" required />
                       </div>
                       <div className="gr-input-group">
                         <label>Destination City</label>
-                        <input className="gr-input" list="indian-cities-24BCI0098" value={destInput} onChange={handleManualDest} placeholder="Type a city..." required />
+                        <input className="gr-input" list="indian-cities-24BCI0098" value={destInput} onChange={handleManualDest} placeholder="Type a city…" required />
                       </div>
                     </div>
-                    
-                    {/* ECO-ROUTE ANALYSIS PANEL (HC-ERA) */}
+
+                    {/* ── HC-ERA RICH COMPARISON PANEL ── */}
                     <AnimatePresence>
                       {ecoData && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          style={{ background: 'var(--gr-bg-primary)', padding: '1rem', borderRadius: 'var(--gr-radius-sm)', marginBottom: '1rem', border: '1px solid var(--gr-border)' }}
-                        >
-                          <h4 style={{ color: 'var(--gr-accent)', marginBottom: '0.5rem', fontSize: '1rem' }}>🌿 HC-ERA Eco-Route Analysis</h4>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.85rem' }}>
-                            <div style={{ color: '#ef4444' }}><strong>🔴 Normal (Red):</strong> ~{ecoData.standardDistanceKm} km</div>
-                            <div style={{ color: '#10b981' }}><strong>🟢 Eco (Green):</strong> ~{ecoData.ecoDistanceKm} km</div>
-                            <div style={{ color: '#a78bfa', gridColumn: 'span 2' }}><strong>🌤️ Weather Mode:</strong> {ecoData.weather}</div>
-                            
-                            <div style={{ opacity: 0.7 }}><strong>Raw CO₂ (No Eco/No Weather):</strong> {ecoData.nonEcoNoWeather} kg</div>
-                            <div style={{ color: '#fcd34d' }}><strong>Eco-Route CO₂ (No Weather):</strong> {ecoData.ecoNoWeather} kg</div>
-                            
-                            <div style={{ color: 'var(--gr-error)' }}><strong>Standard Route + Weather:</strong> {ecoData.standardCO2} kg</div>
-                            <div style={{ color: '#3b82f6', fontWeight: 600 }}><strong>Eco-Route + Weather:</strong> {ecoData.ecoCO2} kg</div>
-                            
-                            <div style={{ color: 'var(--gr-success)', fontSize: '0.95rem', fontWeight: 700, gridColumn: 'span 2' }}>
-                              Net Algorithm Saved: {ecoData.savedCO2} kg CO₂
-                            </div>
-                            <div style={{ color: 'var(--gr-text-primary)' }}><strong>Per Person CO₂:</strong> {ecoData.carpoolSavings.perPerson} kg</div>
-                            {ecoData.chargingTimeMins > 0 && (
-                              <div style={{ color: '#0ea5e9' }}><strong>Est. EV Charging:</strong> {ecoData.chargingTimeMins} mins</div>
-                            )}
-                          </div>
-                        </motion.div>
+                        <RouteComparisonPanel
+                          ecoData={ecoData}
+                          routeMeta={routeMeta}
+                          fuelType={formData_24BCI0098.fuelType}
+                          seats={parseInt(formData_24BCI0098.seatsAvailable)}
+                        />
                       )}
                     </AnimatePresence>
 
@@ -315,8 +372,8 @@ export default function CarpoolPage_HarshitChhabi() {
                       </div>
                     </div>
                     <div className="gr-input-group">
-                        <label>Cost Per Person (₹)</label>
-                        <input className="gr-input" name="costPerPerson" type="number" min="0" placeholder="0" value={formData_24BCI0098.costPerPerson} onChange={handleFormChange} />
+                      <label>Cost Per Person (₹)</label>
+                      <input className="gr-input" name="costPerPerson" type="number" min="0" placeholder="0" value={formData_24BCI0098.costPerPerson} onChange={handleFormChange} />
                     </div>
                     <button className="gr-btn gr-btn-primary" type="submit" style={{ width: '100%', marginTop: '0.5rem' }}>
                       Offer Ride
@@ -402,16 +459,12 @@ export default function CarpoolPage_HarshitChhabi() {
         {bookingRide && (
           <motion.div
             className="gr-modal-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setBookingRide(null)}
           >
             <motion.div
               className="gr-modal"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="gr-modal-header">
@@ -419,31 +472,20 @@ export default function CarpoolPage_HarshitChhabi() {
                 <button className="gr-modal-close" onClick={() => setBookingRide(null)}>✕</button>
               </div>
 
-              {/* Ride info */}
+              {/* Ride info + HC-ERA in modal */}
               <div style={{ background: 'var(--gr-bg-secondary)', padding: '1rem', borderRadius: 'var(--gr-radius-md)', marginBottom: '1.5rem' }}>
                 <p><strong>{bookingRide.driver}</strong> • {bookingRide.vehicleType}</p>
                 <p className="gr-text-sm">📍 {bookingRide.startLocationAddress} → {bookingRide.destinationAddress}</p>
                 <p className="gr-text-sm">🕐 {formatDate_24BCI0098(bookingRide.departureTime)} • {bookingRide.costPerPerson}</p>
 
-                {/* HC-ERA BOOKING DATA */}
                 {bookingEcoData && (
-                  <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--gr-border)', fontSize: '0.85rem' }}>
-                    <div style={{ color: 'var(--gr-accent)', marginBottom: '0.5rem', fontWeight: 600 }}>HC-ERA Route Analysis:</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                      <span style={{ color: '#ef4444' }}>🔴 Normal (Red): ~{bookingEcoData.standardDistanceKm} km</span>
-                      <span style={{ color: '#10b981' }}>🟢 Eco (Green): ~{bookingEcoData.ecoDistanceKm} km</span>
-                      <span style={{ color: '#a78bfa', gridColumn: 'span 2' }}>🌤️ Weather Mode: {bookingEcoData.weather}</span>
-                      
-                      <span style={{ opacity: 0.7 }}>🚙 Raw CO₂: {bookingEcoData.nonEcoNoWeather} kg</span>
-                      <span style={{ color: '#fcd34d' }}>🌱 Eco (No Wthr): {bookingEcoData.ecoNoWeather} kg</span>
-                      
-                      <span style={{ color: 'var(--gr-error)' }}>☁️ Std + Weather: {bookingEcoData.standardCO2} kg</span>
-                      <span style={{ color: '#3b82f6' }}>⚡ Eco + Weather: {bookingEcoData.ecoCO2} kg</span>
-                      
-                      <span style={{ color: 'var(--gr-success)', fontWeight: 600, marginTop: '0.25rem', gridColumn: 'span 2' }}>
-                        💎 Net Saved: {bookingEcoData.savedCO2} kg CO₂ | Your Footprint: {bookingEcoData.carpoolSavings.perPerson} kg
-                      </span>
-                    </div>
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <RouteComparisonPanel
+                      ecoData={bookingEcoData}
+                      routeMeta={null}
+                      fuelType={bookingRide.vehicleType.includes('EV') ? 'EV' : bookingRide.vehicleType.includes('Diesel') ? 'Diesel' : 'Petrol'}
+                      seats={bookingRide.seatsTotal || 4}
+                    />
                   </div>
                 )}
               </div>
